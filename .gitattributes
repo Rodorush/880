@@ -1,0 +1,6 @@
+# Fontes MQL5 sao UTF-8 com CRLF, que e o que o MetaEditor grava.
+# Versoes ate a 1.13 estavam em UTF-16LE, o que fazia o git trata-las como
+# binario e tornava todo diff ilegivel. Nao voltar para UTF-16.
+# O atributo "diff" forca diff textual mesmo contra os blobs UTF-16 antigos.
+*.mq5 text diff
+*.mqh text diff
