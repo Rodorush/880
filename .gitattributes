@@ -1,0 +1,7 @@
+# 880.mq5 e demais fontes MQL5 sao gravados pelo MetaEditor em UTF-16LE + CRLF.
+# O git os trata como binario, o que torna todo diff ilegivel. O textconv abaixo
+# converte apenas para EXIBIR o diff — os bytes gravados nunca sao alterados.
+# Habilitar com:
+#   git config diff.mql5.textconv "iconv -f UTF-16 -t UTF-8"
+*.mq5 diff=mql5
+*.mqh diff=mql5
