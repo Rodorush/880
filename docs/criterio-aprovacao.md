@@ -37,6 +37,29 @@ Declaradas antes de rodar. **Divergência fora desta lista é bug, não melhoria
 | Breakeven passa a rodar em venda sem SL prévio | Irrelevante na prática: a entrada sempre envia SL |
 | Ordem pendente sobrevive a troca de timeframe e a recompilação | Nenhum efeito no tester |
 
+## 2b. Divergências esperadas da v1.16
+
+| Mudança | Efeito esperado no backtest |
+|---|---|
+| Estocástico fora do `Sinal()` | **Nenhum** com o default `usaStoch=false`, que já o desligava |
+| Médias exigidas **inclinadas**, não só ordenadas | Menos entradas. O conjunto de sinais é subconjunto estrito do da v1.15 sem estocástico, verificado nas 64 combinações dos predicados — não pode aparecer trade novo |
+| `InpTipoStop` | **Nenhum** no default `STOP_FANTASMA`, que reproduz a v1.15 |
+| `InpTipoStop = STOP_FIXO` | Trade diferente por construção: sai no pavio, sem trailing, e a perda máxima passa a ser a que o dimensionamento usou |
+| `OnInit` recusa `riscoMoeda` e `riscoPorCento` juntos | Só afeta `.set` que preenchia os dois (antes o `riscoPorCento` era silenciosamente ignorado) |
+
+**Trade novo aparecendo na v1.16 é bug**, não melhoria: o filtro só fecha casos.
+
+## 2c. Divergências esperadas da v1.17
+
+| Mudança | Efeito esperado no backtest |
+|---|---|
+| Entrada por `STOP_LIMIT` em vez de `STOP` | **Passa a existir backtest.** Antes toda entrada com gatilho acima do preço era rejeitada com 10022 e nenhuma posição abria |
+| `InpStopLimitTicks = 2` | Entrada até 10 pontos pior que o gatilho, por trade. Num edge medido em ticks isso é 2 ticks de custo — tem de aparecer no resultado |
+| Risco medido contra `precoPiorFill` | Lote ligeiramente menor: a distância até o stop cresce em `1 + InpStopLimitTicks` ticks |
+
+**Antes da v1.17 não existe backtest válido deste EA em WINV26.** Qualquer resultado anterior
+foi produzido com todas as entradas de rompimento rejeitadas pelo servidor.
+
 ## 3. Critério de aprovação — A DEFINIR
 
 > Os quatro números abaixo são decisão do usuário e ainda **não** foram preenchidos.

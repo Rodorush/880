@@ -27,15 +27,23 @@ Critério de aprovação e divergências esperadas: [`docs/criterio-aprovacao.md
    da posição (a barra do sinal). O `OnInit` recusa iniciar com posição própria e estado
    incompleto, em vez de operar com número inventado.
 8. **`StopFantasma()` é gráfico.** Nunca pode bloquear nem repetir: uma tentativa e segue.
+9. **Entrada por `ORDER_TYPE_*_STOP_LIMIT`, nunca `ORDER_TYPE_*_STOP`.** O WINV26 rejeita
+   a ordem stop pura com retcode 10022 mesmo anunciando suporte em `SYMBOL_ORDER_MODE`.
+   O 10022 nesse símbolo quase nunca é a validade — ver [`README.md`](README.md). Antes de
+   mudar qualquer coisa em `TipoTempoDoSimbolo()` ou no tipo da ordem, rode
+   `tools/DiagnosticoValidade` e decida pelo retcode, não por hipótese.
+10. **O dimensionamento mede contra `precoPiorFill`, não contra o gatilho.** No modo
+   `STOP_FANTASMA` isso significa que o risco configurado **não** é a perda máxima — ver
+   [`README.md`](README.md). Qualquer mudança em `CalculaLotes()` ou em `InpTipoStop` tem de
+   respeitar essa distinção, ou o EA volta a mentir sobre o próprio risco.
 
 ## Encoding e git
 
-- `880.mq5` é **UTF-16LE com BOM e CRLF** — é o que o MetaEditor grava. Editando pelo WSL,
-  converter para UTF-8/LF, editar, e converter de volta. Confira o round-trip com `cmp`
-  antes de gravar: o arquivo **não termina em nova linha** e `sed` corrompe o último byte.
-  Use `perl -pe 's/\n/\r\n/'`, que só toca em `\n` reais.
-- O git trata o `.mq5` como binário. O `.gitattributes` declara o driver de diff; habilitar
-  uma vez por clone com `git config diff.mql5.textconv "iconv -f UTF-16 -t UTF-8"`.
+- Os fontes são **UTF-8 com CRLF**, que é o que o MetaEditor grava. Editando pelo WSL,
+  preservar o CRLF: use `perl -pe 's/\n/\r\n/'`, que só toca em `\n` reais — `sed 's/$/\r/'`
+  corrompe a última linha, porque o arquivo **não termina em nova linha**.
+- Versões até a 1.13 estavam em UTF-16LE e o git as tratava como binário. **Não voltar para
+  UTF-16**; o `.gitattributes` força diff textual mesmo contra esses blobs antigos.
 - Comentários e strings em **português acentuado**. Não misturar com texto sem acento.
 
 ## Compilar
