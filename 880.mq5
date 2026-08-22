@@ -1,11 +1,11 @@
 //+------------------------------------------------------------------+
-//|                                                 880 (v.1.17).mq5 |
+//|                                                 880 (v.1.18).mq5 |
 //|                                       Rodolfo Pereira de Andrade |
 //|                                    https://rodorush.blogspot.com |
 //+------------------------------------------------------------------+
 #property copyright "Rodolfo Pereira de Andrade"
 #property link      "https://rodorush.blogspot.com"
-#property version   "1.17"
+#property version   "1.18"
 #property description "Setup 8/80 no Éden dos Traders. Opera somente em conta Netting."
 
 //--- Estado da estratégia
@@ -40,7 +40,7 @@ ulong  totalEnvios, retornoFalsoMasExecutou, enviosRejeitados;
 MqlRates rates[];
 MqlTick  lastTick;
 
-string robot = "880 1.17"; //Nome do EA
+string robot = "880 1.18"; //Nome do EA
 string simbolo;
 string gv;                 //Prefixo das GlobalVariables deste EA/símbolo
 //-----------------------------------------------------
@@ -132,6 +132,7 @@ input int  startHour     = 9;    //Hora de início dos trades
 sinput int startMinutes  = 0;    //Minutos de início (fora da otimização)
 input int  stopHour      = 17;   //Hora de interrupção
 sinput int stopMinutes   = 45;   //Minutos de interrupção (fora da otimização)
+input bool InpPermiteBarraAbertura = false; //Permitir ordem na 1a vela do dia?
 
 
 //-----------------------------------------------------
@@ -615,7 +616,21 @@ void OnTick()
             RemoveOrdens(magicEntrada,"Entrada (meta batida)");
       }
       else if(Sinal())
-         ColocaOrdem();
+      {
+         // A ordem sai na vela 1 com a vela 0 ainda em formação. Se a vela 1
+         // for a que abriu o pregão, o filtro descarta o sinal - e o descarte
+         // se comporta como "sem sinal", inclusive removendo pendente antiga.
+         if(!InpPermiteBarraAbertura && PrimeiraVelaDoDia())
+         {
+            if(InpDiagSinal)
+               PrintFormat("DIAG %s | sinal=%d DESCARTADO: vela 1 é a primeira do dia",
+                           TimeToString(rates[1].time,TIME_DATE|TIME_MINUTES), sinal);
+            if(MinhasOrdens(magicEntrada) > 0)
+               RemoveOrdens(magicEntrada,"Entrada (1a vela do dia)");
+         }
+         else
+            ColocaOrdem();
+      }
       else if(MinhasOrdens(magicEntrada) > 0)
          RemoveOrdens(magicEntrada,"Entrada (sem sinal nesta vela)");
    }
@@ -729,6 +744,18 @@ bool Sinal()
 //| vela 2 engloba a 1, a 1 é um inside bar e quem manda é a MÃE (a vela 2):
 //| stop e alvo saem dela, não do inside bar. É a única situação em que o stop
 //| não fica na vela de entrada.
+//| A vela 1 é a primeira do pregão? Detecta pela virada de data entre as duas
+//| velas lidas. Vale a pena barrar porque ali o range costuma ser muito maior
+//| que o do resto do dia -- e é o range dela que define o stop e, por Fibo, o
+//| alvo -- e porque rates[2] ainda é do dia anterior, do outro lado do gap.
+bool PrimeiraVelaDoDia()
+{
+   MqlDateTime d1, d2;
+   TimeToStruct(rates[1].time, d1);
+   TimeToStruct(rates[2].time, d2);
+   return(d1.day != d2.day || d1.mon != d2.mon || d1.year != d2.year);
+}
+
 int InsideBar()
 {
    if(rates[2].high > rates[1].high && rates[2].low < rates[1].low)

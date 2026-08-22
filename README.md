@@ -42,6 +42,20 @@ não entrega. Com `InpStopLimitTicks = 0` o limite fica no gatilho e o backtest 
   servidor, e o breakeven.
 - **Somente conta Netting/Exchange.** O `OnInit` recusa conta em modo Hedging.
 
+### A primeira vela do dia (`InpPermiteBarraAbertura`, padrão não)
+
+A ordem é colocada na vela 1 — a que acabou de fechar — enquanto a vela 0 ainda está em
+formação. Com o padrão `false`, um sinal cuja vela 1 seja a **primeira do pregão** é
+descartado, e o descarte se comporta como "sem sinal": qualquer pendente antiga também sai.
+
+Duas razões. O range da vela de abertura costuma ser muito maior que o do resto do dia, e é
+esse range que define o stop e, por Fibo, o alvo — foi de uma vela dessas que saiu o stop de
+905 pontos que cancelou uma entrada por risco. E a vela 2, no momento em que a vela 1 é a de
+abertura, ainda é do **dia anterior**: a comparação de máximas e de fechamento contra a média
+atravessa o gap noturno e não significa o que a regra pretende.
+
+Detecção pela virada de data entre `rates[1]` e `rates[2]`, em `PrimeiraVelaDoDia()`.
+
 ### Onde fica o stop do setup (`precoStop`)
 
 Antes de escolher o modo, vale saber de onde sai o nível. `precoStop` é sempre a extrema da
@@ -154,7 +168,7 @@ duplicar a ordem a cada 100 ms. O contador `retorno_falso_mas_executou`, no resu
 
 | Arquivo | O que é |
 |---|---|
-| `880.mq5` | v1.17 — correções P0/P1, sinal sem estocástico, dois modos de stop, entrada por stop-limit |
+| `880.mq5` | v1.18 — correções P0/P1, sinal sem estocástico, dois modos de stop, entrada por stop-limit, filtro da 1ª vela |
 | `tools/DiagnosticoValidade.mq5` | EA de diagnóstico: prova que tipo/validade/stop o servidor aceita |
 | `legacy/v1.13/880_v113_baseline.mq5` | v1.13 congelada (tag `v1.13-baseline`): **grupo de controle** |
 | `legacy/v1.14/880_v114_fidelidade.mq5` | v1.14 — v1.13 com `Sinal()` equivalente e sem o ramo Hedge |

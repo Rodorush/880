@@ -57,6 +57,15 @@ Declaradas antes de rodar. **Divergência fora desta lista é bug, não melhoria
 | `InpStopLimitTicks = 2` | Entrada até 10 pontos pior que o gatilho, por trade. Num edge medido em ticks isso é 2 ticks de custo — tem de aparecer no resultado |
 | Risco medido contra `precoPiorFill` | Lote ligeiramente menor: a distância até o stop cresce em `1 + InpStopLimitTicks` ticks |
 
+## 2d. Divergências esperadas da v1.18
+
+| Mudança | Efeito esperado no backtest |
+|---|---|
+| `InpPermiteBarraAbertura = false` (padrão) | Some o primeiro sinal de cada pregão quando ele nasce da vela de abertura. Menos trades, e some junto a classe de stop muito largo que vinha do range da abertura |
+| `InpPermiteBarraAbertura = true` | Reproduz o comportamento da v1.17 |
+
+**Trade novo aparecendo na v1.18 é bug**: o filtro só remove sinais.
+
 **Antes da v1.17 não existe backtest válido deste EA em WINV26.** Qualquer resultado anterior
 foi produzido com todas as entradas de rompimento rejeitadas pelo servidor.
 
